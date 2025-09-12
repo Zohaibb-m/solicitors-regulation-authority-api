@@ -1,0 +1,72 @@
+import pandas as pd
+from geopy import distance, Nominatim, Photon
+import pgeocode
+import time
+import math 
+
+class DistanceCalculator:
+    def __init__(self):
+        self.organisation_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
+        print(self.organisation_df.head())
+        self.pgeocode_nominatim = pgeocode.Nominatim("gb")
+        self.geolocator_nominatim = Nominatim(user_agent="SRA_API_Testing")
+        self.geolocator_photon = Photon(user_agent="SRA_API_Testing")
+        
+    def calculate_distance(self, coord1, coord2):
+        return distance.distance(coord1, coord2).km
+
+    def get_5_closest_organizations(self, user_postcode):
+        user_coordinates = self.get_coordinates_from_postcode(user_postcode)
+        if user_coordinates == (None, None):
+            user_coordinates = self.get_coordinates_from_address(user_postcode)
+            if user_coordinates == (None, None):
+                print("Could not determine coordinates for the provided postcode or address.")
+                return None
+        self.organisation_df["distance_km"] = self.organisation_df.apply(lambda row: self.calculate_distance(user_coordinates, eval(row['coordinates'])), axis=1)
+        organisations_sorted = self.organisation_df.sort_values(by="distance_km")
+        all_organisations = []
+        for row in organisations_sorted.head(5).itertuples():
+            print(row)
+            org_info = {
+                "name": row.name,
+                "office_address": row.office_address,
+                "postcode": row.postcode,
+                "website": "" if math.isnan(row.website) else row.website,
+                "phone_number": "" if math.isnan(row.phone_number) else row.phone_number,
+                "distance_km": round(row.distance_km, 2)
+            }
+            all_organisations.append(org_info)
+        return {"organisations": all_organisations}
+
+    def get_coordinates_from_postcode(self, postcode):
+        response = self.pgeocode_nominatim.query_postal_code(postcode)
+        if response["latitude"] is not None and response["longitude"] is not None and not response.empty:
+            return (float(response["latitude"]), float(response["longitude"]))
+        else:
+            return None, None
+        
+    def get_coordinates_from_address(self, address):
+        retries = 0
+        while retries < 2:
+            try:
+                location = self.geolocator_nominatim.geocode(address)
+                if location:
+                    return (location.latitude, location.longitude)
+                else:
+                    location = self.geolocator_photon.geocode(address)
+                    if location:
+                        return (location.latitude, location.longitude)
+                    else:
+                        return (None, None)
+            except Exception as e:
+                print(f"Error geocoding address {address}: {e}")
+                retries += 1
+                time.sleep(5)
+        return (None, None)
+
+if __name__ == "__main__":
+    distance_calculator = DistanceCalculator()
+    user_postcode = input("Enter your postcode or address: ")
+    closest_organizations = distance_calculator.get_5_closest_organizations(user_postcode)
+    if closest_organizations is not None:
+        print(closest_organizations[['name', 'office_address', 'postcode', 'website', 'phone_number', 'distance_km']])
