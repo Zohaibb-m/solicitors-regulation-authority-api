@@ -63,7 +63,7 @@ class OrganizationDataMaker:
         
         count = 0
         with open("app/data/processed_organizations.csv", 'w') as f:
-            f.write("name,office_address,postcode,website,phone_number,coordinates\n")
+            f.write("name,office_address,postcode,website,phone_number,email,coordinates\n")
             for organisation in tqdm(data["Organisations"], desc="Processing organizations"):
                 if "ORG" in organisation["OrganisationType"]:
                     for office in organisation["Offices"]:
@@ -90,6 +90,7 @@ class OrganizationDataMaker:
                         f.write(f"{office['Postcode']},")
                         f.write(f"{office['Website']},")
                         f.write(f"{office['PhoneNumber']},")
+                        f.write(f"{office['Email']},")
                         f.write(f"\"({lat},{lon})\"\n")
                         count += 1
         print(f"Total organizations processed: {count}")

@@ -7,7 +7,6 @@ import math
 class DistanceCalculator:
     def __init__(self):
         self.organisation_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
-        print(self.organisation_df.head())
         self.pgeocode_nominatim = pgeocode.Nominatim("gb")
         self.geolocator_nominatim = Nominatim(user_agent="SRA_API_Testing")
         self.geolocator_photon = Photon(user_agent="SRA_API_Testing")
@@ -26,17 +25,17 @@ class DistanceCalculator:
         organisations_sorted = self.organisation_df.sort_values(by="distance_km")
         all_organisations = []
         for row in organisations_sorted.head(5).itertuples():
-            print(row)
             org_info = {
-                "name": row.name,
+                "organization_name": row.name,
                 "office_address": row.office_address,
                 "postcode": row.postcode,
-                "website": "" if math.isnan(row.website) else row.website,
-                "phone_number": "" if math.isnan(row.phone_number) else row.phone_number,
+                "website": "" if pd.isna(row.website) else row.website,
+                "phone_number": "" if pd.isna(row.phone_number) else row.phone_number,
+                "email": "" if pd.isna(row.email) else row.email,
                 "distance_km": round(row.distance_km, 2)
             }
             all_organisations.append(org_info)
-        return {"organisations": all_organisations}
+        return {"organizations_count": 5, "organizations": all_organisations}
 
     def get_coordinates_from_postcode(self, postcode):
         response = self.pgeocode_nominatim.query_postal_code(postcode)
