@@ -2,6 +2,7 @@
 from app.utils.pdf_generator import PDFGenerator
 import dotenv
 import vercel_blob
+import datetime
 
 dotenv.load_dotenv()
 
@@ -16,7 +17,7 @@ class PDFSaver:
     def upload_to_blob(self, text, client_name):
         pdf_path = self.save_pdf(text)
         try:
-            response = vercel_blob.put(f"{client_name}_brief.pdf", open(pdf_path, "rb").read(), verbose=True)
+            response = vercel_blob.put(f"{client_name}_{datetime.datetime.now()}_brief.pdf", open(pdf_path, "rb").read(), verbose=True)
             return response["downloadUrl"]
         except Exception as e:
             print(f"Error uploading PDF: {e}")
