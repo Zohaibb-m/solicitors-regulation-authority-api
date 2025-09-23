@@ -7,6 +7,8 @@ from tqdm import tqdm
 import math
 from geopy.geocoders import Nominatim, Photon
 import time
+import pandas as pd
+
 load_dotenv()
 
 class OrganizationDataMaker:
@@ -62,10 +64,16 @@ class OrganizationDataMaker:
             return
         
         count = 0
-        with open("app/data/processed_organizations.csv", 'w') as f:
-            f.write("name,office_address,postcode,website,phone_number,email,coordinates\n")
+
+        if os.path.exists("app/data/processed_organizations.csv"):
+            organization_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
+        with open("app/data/processed_organizations.csv", 'a') as f:
+            if not os.path.exists("app/data/processed_organizations.csv"):
+                f.write("name,office_address,postcode,website,phone_number,email,coordinates\n")
             for organisation in tqdm(data["Organisations"], desc="Processing organizations"):
                 if "ORG" in organisation["OrganisationType"]:
+                    if organisation['PracticeName'] in organization_df['name'].values:
+                        continue
                     for office in organisation["Offices"]:
                         office_address = ""
                         if office['Address1']:

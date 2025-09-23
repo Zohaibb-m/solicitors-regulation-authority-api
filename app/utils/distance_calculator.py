@@ -2,20 +2,22 @@ import pandas as pd
 from geopy import distance, Nominatim, Photon
 import pgeocode
 import time
-import math 
 
 class DistanceCalculator:
     def __init__(self):
-        self.organisation_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
         self.pgeocode_nominatim = pgeocode.Nominatim("gb")
         self.geolocator_nominatim = Nominatim(user_agent="SRA_API_Testing")
         self.geolocator_photon = Photon(user_agent="SRA_API_Testing")
-        
+        self.read_organization_data()
+    
+    def read_organization_data(self):
+        self.organisation_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
+
     def calculate_distance(self, coord1, coord2):
         return distance.distance(coord1, coord2).km
 
     def get_5_closest_organizations(self, user_postcode):
-        user_coordinates = self.get_coordinates_from_postcode(user_postcode)
+        user_coordinates, location = self.get_coordinates_from_postcode(user_postcode)
         if user_coordinates == (None, None):
             user_coordinates = self.get_coordinates_from_address(user_postcode)
             if user_coordinates == (None, None):
@@ -35,14 +37,14 @@ class DistanceCalculator:
                 "distance_km": round(row.distance_km, 2)
             }
             all_organisations.append(org_info)
-        return {"organizations_count": 5, "organizations": all_organisations}
+        return {"location": location, "organizations_count": 5, "organizations": all_organisations}
 
     def get_coordinates_from_postcode(self, postcode):
         response = self.pgeocode_nominatim.query_postal_code(postcode)
         if response["latitude"] is not None and response["longitude"] is not None and not response.empty:
-            return (float(response["latitude"]), float(response["longitude"]))
+            return ((float(response["latitude"]), float(response["longitude"])), response["place_name"])
         else:
-            return None, None
+            return(None, None), None
         
     def get_coordinates_from_address(self, address):
         retries = 0
@@ -62,10 +64,3 @@ class DistanceCalculator:
                 retries += 1
                 time.sleep(5)
         return (None, None)
-
-if __name__ == "__main__":
-    distance_calculator = DistanceCalculator()
-    user_postcode = input("Enter your postcode or address: ")
-    closest_organizations = distance_calculator.get_5_closest_organizations(user_postcode)
-    if closest_organizations is not None:
-        print(closest_organizations[['name', 'office_address', 'postcode', 'website', 'phone_number', 'distance_km']])
