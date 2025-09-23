@@ -1,0 +1,7 @@
+pydantic
+fastapi
+uvicorn
+pgeocode
+geopy
+fpdf
+load_dotenv
