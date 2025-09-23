@@ -3,7 +3,6 @@ from typing import Union
 
 class OrganisationSearchRequest(BaseModel):
     post_code: str = Field(..., example="GU7 2DZ")
-    address: str = Field(None, example="10 Downing St, Westminster, London")
 
 class EmailRequest(BaseModel):
     client_name: str = Field(..., example="Zohaib Munir")
@@ -20,3 +19,7 @@ class EmailRequest(BaseModel):
         if value not in ["client", "firms"]:
             raise ValueError("user_type must be either 'user' or 'firm'")
         return value
+
+class GeneratePDFRequest(BaseModel):
+    text: str = Field(..., example="This is a sample text for PDF generation.\nIt supports multiple lines.")
+    client_name: str = Field(..., example="Zohaib Munir")
