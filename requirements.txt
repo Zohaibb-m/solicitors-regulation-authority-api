@@ -19,3 +19,5 @@ uvicorn[standard]
 apscheduler
 vercel-blob
 fpdf
+gspread
+oauth2client
