@@ -16,9 +16,32 @@ class PDFGenerator:
 
     def generate_pdf(self, text):
         self.add_page()
+        # There are 3 types of line starters: # for headers, ** for bold, and normal text
         self.set_font(size=12)
-        for line in text.split('\n'):
-            self.add_cell(0, 10, line, ln=1)
+        lines = text.split('\n\n')
+        for line in lines:
+            line = line.strip()
+            if line.startswith('# '):
+                self.set_font(size=16, style='B')
+                self.add_cell(0, 10, line[2:], ln=1, align='C')
+                self.set_font(size=12)
+            elif line.startswith('**') and line.endswith('**'):
+                self.set_font(size=12, style='B')
+                self.add_cell(0, 10, line[2:-2], ln=1, align='L')
+                self.set_font(size=12)
+            else:
+                paras = []
+                temp_para = ""
+                for word in line.split():
+                    if self.pdf_generator.get_string_width(temp_para) + len(word) < 180:
+                        temp_para += word + " "
+                    else:
+                        paras.append(temp_para.strip())
+                        temp_para = word + " "
+                if temp_para:
+                    paras.append(temp_para.strip())
+                for para in paras:
+                    self.add_cell(0, 10, para, ln=1, align='L')
         temp_file_path = "app/data/generated_brief.pdf"
         self.pdf_generator.output(temp_file_path)
         return temp_file_path
