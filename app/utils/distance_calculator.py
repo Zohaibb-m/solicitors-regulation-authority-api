@@ -18,6 +18,7 @@ class DistanceCalculator:
 
     def get_5_closest_organizations(self, user_postcode):
         user_coordinates, location = self.get_coordinates_from_postcode(user_postcode)
+        location = location.split(",")[0] if "," in location else location
         if user_coordinates == (None, None):
             user_coordinates = self.get_coordinates_from_address(user_postcode)
             if user_coordinates == (None, None):
