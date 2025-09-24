@@ -1,10 +1,12 @@
 from fastapi import APIRouter
-from app.schema import OrganisationSearchRequest, EmailRequest, GeneratePDFRequest
+from app.schema import OrganisationSearchRequest, EmailRequest, UserDatastorageRequest, GetQuestionsRequest
 from app.utils.organization_data_maker import OrganizationDataMaker
 from app.utils.distance_calculator import DistanceCalculator
 from app.utils.email_handler import EmailHandler
 from app.utils.pdf_saver import PDFSaver
+from app.utils.google_sheet_handler import GoogleSheetHandler
 from apscheduler.schedulers.background import BackgroundScheduler
+import json
 
 router = APIRouter()
 distance_calculator = DistanceCalculator()
@@ -12,6 +14,7 @@ data_maker = OrganizationDataMaker()
 email_handler = EmailHandler()
 pdf_saver = PDFSaver()
 scheduler = BackgroundScheduler()
+google_sheet_handler = GoogleSheetHandler()
 
 scheduler.add_job(func=data_maker.process_organization_data, trigger="interval", hours=24)
 scheduler.start()
@@ -36,6 +39,17 @@ def send_brief(request: EmailRequest):
     return {"message": "This endpoint will handle sending briefs via email."}
 
 @router.post("/generate-pdf")
-def generate_pdf(request: GeneratePDFRequest):
-    pdf_url = pdf_saver.upload_to_blob(request.text, request.client_name)
+def generate_pdf(request: str):
+    request_body = json.loads(json.loads(request))
+    pdf_url = pdf_saver.upload_to_blob(request_body["text"].replace('–', '-'), request_body["client_name"])
     return {"pdf_url": pdf_url}
+
+@router.post("/store-user-data")
+def store_user_data(request: UserDatastorageRequest):
+    if google_sheet_handler.store_user_data(request):
+        return {"message": "User data stored successfully."}
+
+@router.post("/get-questions")
+def get_questions(request: GetQuestionsRequest):
+    questions = google_sheet_handler.get_question_set(request.legal_category)
+    return {"questions": questions}

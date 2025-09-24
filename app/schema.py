@@ -23,3 +23,30 @@ class EmailRequest(BaseModel):
 class GeneratePDFRequest(BaseModel):
     text: str = Field(..., example="This is a sample text for PDF generation.\nIt supports multiple lines.")
     client_name: str = Field(..., example="Zohaib Munir")
+
+class UserDatastorageRequest(BaseModel):
+    user_id: str = Field(..., example="12345")
+    user_name: str = Field(..., example="John Doe")
+    user_email: str = Field(..., example="john_doe25@gmail.com")
+    date_time_started: str = Field(..., example="2023-10-01 10:00:00")
+    date_time_last_active: str = Field(..., example="2023-10-01 11:00:00")
+    legal_category: str = Field(..., example="Conveyancing")
+    location: str = Field(..., example="London")
+    drop_off_stage: str = Field(..., example="Initial Contact")
+
+    @field_validator("drop_off_stage")
+    def validate_drop_off_stage(cls, value):
+        valid_stages = [
+            "Left before email",
+            "Email provided, no brief",
+            "Declined brief",
+            "Brief generated, no referral",
+            "Declined solicitor referral",
+            "Referral sent",
+        ]
+        if value not in valid_stages:
+            value = "Other/Unspecified"
+        return value
+
+class GetQuestionsRequest(BaseModel):
+    legal_category: str = Field(..., example="Immigration")
