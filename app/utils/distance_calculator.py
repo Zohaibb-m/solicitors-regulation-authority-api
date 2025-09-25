@@ -11,7 +11,7 @@ class DistanceCalculator:
         self.read_organization_data()
     
     def read_organization_data(self):
-        self.organisation_df = pd.read_csv('/app/data/processed_organizations.csv', encoding='ISO-8859-1')
+        self.organisation_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
 
     def calculate_distance(self, coord1, coord2):
         return distance.distance(coord1, coord2).km
