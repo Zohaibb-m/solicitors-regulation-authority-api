@@ -5,9 +5,6 @@ import uvicorn
 app = FastAPI()
 app.include_router(router)
 
-def handler(event, context):
-    return app
-
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Solicitors Regulation Authority API"}
