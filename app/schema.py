@@ -13,6 +13,7 @@ class EmailRequest(BaseModel):
     email_to: Union[str, list[str]] = Field(..., example=["zohaibmunir32@gmail.com"])
     pdf_url: str = Field(..., example="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf")
     user_type: str = Field(..., example="firms")
+    fake: bool = Field(True, example=True)
 
     @field_validator("user_type")
     def validate_user_type(cls, value):
