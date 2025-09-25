@@ -1,4 +1,8 @@
 import fpdf
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class PDFGenerator:
     def __init__(self):
@@ -42,6 +46,6 @@ class PDFGenerator:
                     paras.append(temp_para.strip())
                 for para in paras:
                     self.add_cell(0, 10, para, ln=1, align='L')
-        temp_file_path = "app/data/generated_brief.pdf"
+        temp_file_path = os.getenv("PDF_SAVE_PATH")
         self.pdf_generator.output(temp_file_path)
         return temp_file_path
