@@ -7,7 +7,7 @@ import json
 
 load_dotenv()
 BB_CREDENTIALS = json.loads(os.getenv("BB_CREDENTIALS"))
-print(type(BB_CREDENTIALS))
+
 class GoogleSheetHandler:
     def __init__(self):
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
