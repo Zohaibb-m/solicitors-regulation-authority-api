@@ -65,10 +65,10 @@ class OrganizationDataMaker:
         
         count = 0
 
-        if os.path.exists("app/data/processed_organizations.csv"):
-            organization_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
-        with open("app/data/processed_organizations.csv", 'a') as f:
-            if not os.path.exists("app/data/processed_organizations.csv"):
+        if os.path.exists("/app/data/processed_organizations.csv"):
+            organization_df = pd.read_csv('/app/data/processed_organizations.csv', encoding='ISO-8859-1')
+        with open("/app/data/processed_organizations.csv", 'a') as f:
+            if not os.path.exists("/app/data/processed_organizations.csv"):
                 f.write("name,office_address,postcode,website,phone_number,email,coordinates\n")
             for organisation in tqdm(data["Organisations"], desc="Processing organizations"):
                 if "ORG" in organisation["OrganisationType"]:

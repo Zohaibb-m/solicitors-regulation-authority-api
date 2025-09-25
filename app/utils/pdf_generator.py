@@ -42,6 +42,6 @@ class PDFGenerator:
                     paras.append(temp_para.strip())
                 for para in paras:
                     self.add_cell(0, 10, para, ln=1, align='L')
-        temp_file_path = "app/data/generated_brief.pdf"
+        temp_file_path = "/app/data/generated_brief.pdf"
         self.pdf_generator.output(temp_file_path)
         return temp_file_path

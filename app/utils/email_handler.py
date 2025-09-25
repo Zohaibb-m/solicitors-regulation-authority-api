@@ -13,8 +13,8 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 class EmailHandler:
     def __init__(self):
-        self.email_template_firm = open("app/data/email_template_firm.html", "r").read()
-        self.email_template_client = open("app/data/email_template_client.html", "r").read()
+        self.email_template_firm = open("/app/data/email_template_firm.html", "r").read()
+        self.email_template_client = open("/app/data/email_template_client.html", "r").read()
         self.login()
 
     def login(self):
@@ -51,7 +51,7 @@ class EmailHandler:
         msg['Subject'] = subject
         msg.attach(MIMEText(email_content, 'html')) 
         # Attach logo image
-        with open("app/data/briefbase_logo.png", "rb") as img:
+        with open("/app/data/briefbase_logo.png", "rb") as img:
             logo = MIMEText(img.read(), 'base64', 'utf-8')
             logo.add_header('Content-Disposition', 'inline', filename="briefbase_logo.png")
             logo.add_header('Content-ID', '<logo_image>')
