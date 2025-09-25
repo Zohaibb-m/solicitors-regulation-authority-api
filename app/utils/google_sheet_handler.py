@@ -1,11 +1,17 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+from dotenv import load_dotenv
+import os
+import json
 
+load_dotenv()
+BB_CREDENTIALS = json.loads(os.getenv("BB_CREDENTIALS"))
+print(type(BB_CREDENTIALS))
 class GoogleSheetHandler:
     def __init__(self):
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("BBcredentials.json", scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(BB_CREDENTIALS, scope)
         client = gspread.authorize(creds)
         self.user_data_sheet = client.open("User database").sheet1
         self.questionnaire_sheet = client.open("Questions")
