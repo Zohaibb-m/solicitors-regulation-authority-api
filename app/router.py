@@ -36,7 +36,7 @@ def law_firm_search(request: OrganisationSearchRequest):
 @router.post("/send-brief")
 def send_brief(request: EmailRequest):
     if request.fake:
-        return {"response": "Fake Email has been sent."}
+        return {"response": "Email has been sent."}
     return email_handler.send_email(request.client_name, request.firm_name, request.location, request.contact, request.legal_matter_type, request.email_to, request.pdf_url, request.user_type)
 
 @router.post("/generate-pdf")

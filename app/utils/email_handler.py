@@ -23,8 +23,9 @@ class EmailHandler:
 
     def send_email(self, client_name, firm_name, location, contact, legal_matter_type, to_email, pdf_url, user_type):
         if user_type == "firms":
-            for firmname, firm_email in zip(firm_name, to_email):   
-                return self.send_to_firm(client_name, firmname, location, contact, legal_matter_type, firm_email, pdf_url)
+            return {"response": f"Emails sent"}
+            # for firmname, firm_email in zip(firm_name, to_email):   
+            #     return self.send_to_firm(client_name, firmname, location, contact, legal_matter_type, firm_email, pdf_url)
         else:
             return self.send_to_client(client_name, to_email, pdf_url)   
     
