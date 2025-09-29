@@ -64,17 +64,19 @@ class OrganizationDataMaker:
             return
         
         count = 0
-
-        if os.path.exists("app/data/processed_organizations.csv"):
+        file_exists = os.path.exists("app/data/processed_organizations.csv")
+        if file_exists:
             organization_df = pd.read_csv('app/data/processed_organizations.csv', encoding='ISO-8859-1')
         with open("app/data/processed_organizations.csv", 'a') as f:
-            if not os.path.exists("app/data/processed_organizations.csv"):
+            if not file_exists:
                 f.write("name,office_address,postcode,website,phone_number,email,coordinates\n")
             for organisation in tqdm(data["Organisations"], desc="Processing organizations"):
-                if "ORG" in organisation["OrganisationType"]:
-                    if organisation['PracticeName'] in organization_df['name'].values:
+                if organisation["AuthorisationStatus"] == "YES" and organisation["AuthorisationType"] in ["RECBODY", "RECSOLE", "LICBODY"]:
+                    if file_exists and organisation['PracticeName'] in organization_df['name'].values:
                         continue
                     for office in organisation["Offices"]:
+                        if office["Email"] == None:
+                            continue
                         office_address = ""
                         if office['Address1']:
                             office_address += office['Address1'] + ', '
@@ -95,7 +97,7 @@ class OrganizationDataMaker:
                             continue
                         f.write(f"\"{organisation['PracticeName']}\",")
                         f.write(f"\"{office_address.rstrip(', ')}\",")
-                        f.write(f"{office['Postcode']},")
+                        f.write(f"{office['Postcode'].replace(',','')},")
                         f.write(f"{office['Website']},")
                         f.write(f"{office['PhoneNumber']},")
                         f.write(f"{office['Email']},")
