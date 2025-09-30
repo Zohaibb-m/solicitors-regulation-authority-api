@@ -21,3 +21,5 @@ vercel-blob
 fpdf
 gspread
 oauth2client
+flask
+stripe

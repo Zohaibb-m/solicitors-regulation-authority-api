@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from flask import Flask, redirect, request
 from app.schema import OrganisationSearchRequest, EmailRequest, UserDatastorageRequest, GetQuestionsRequest
 from app.utils.organization_data_maker import OrganizationDataMaker
 from app.utils.distance_calculator import DistanceCalculator
@@ -7,6 +8,11 @@ from app.utils.pdf_saver import PDFSaver
 from app.utils.google_sheet_handler import GoogleSheetHandler
 from apscheduler.schedulers.background import BackgroundScheduler
 import json
+import stripe
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter()
 distance_calculator = DistanceCalculator()
@@ -54,3 +60,25 @@ def store_user_data(request: UserDatastorageRequest):
 def get_questions(request: GetQuestionsRequest):
     questions = google_sheet_handler.get_question_set(request.legal_category)
     return {"questions": questions}
+
+stripe.api_key = os.getenv("STRIPE_API_KEY")
+price_id = os.getenv("PRICE_ID")
+@router.post('/create-checkout-session')
+def create_checkout_session():
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    # Provide the exact Price ID (for example, price_1234) of the product you want to sell
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url= "http://www.google.com",
+            cancel_url= "http://www.google.com",
+        )
+    except Exception as e:
+        return str(e)
+
+    return redirect(checkout_session.url, code=303)
