@@ -4,6 +4,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 import json
+from app.utils.helper_functions import return_response
 
 load_dotenv()
 BB_CREDENTIALS = json.loads(os.getenv("BB_CREDENTIALS"))
@@ -28,8 +29,14 @@ class GoogleSheetHandler:
             data.location,
             data.drop_off_stage,
         ]
-        self.user_data_sheet.append_row(row)
-        return True
+        try:
+            self.user_data_sheet.append_row(row)
+            return return_response({"response": f"User: {data.user_name} added to the user data sheet."})
+        except Exception as e:
+            return return_response({"error": f"An error occured while trying to add data to sheet: {e}"}, error=True)
 
     def get_question_set(self, legal_category: str):
-        return self.questionnaire_sheet.worksheet(legal_category).get_all_records()
+        try:
+            return return_response({"questions": self.questionnaire_sheet.worksheet(legal_category).get_all_records()})
+        except Exception as e:
+            return return_response({"error": f"An error occured while retrieving questions from the sheet: {e}"}, error=True)

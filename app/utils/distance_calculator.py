@@ -2,6 +2,7 @@ import pandas as pd
 from geopy import distance, Nominatim, Photon
 import pgeocode
 import time
+from app.utils.helper_functions import return_response
 
 class DistanceCalculator:
     def __init__(self):
@@ -17,28 +18,29 @@ class DistanceCalculator:
         return distance.distance(coord1, coord2).km
 
     def get_5_closest_organizations(self, user_postcode):
-        user_coordinates, location = self.get_coordinates_from_postcode(user_postcode)
-        location = location.split(",")[0] if "," in location else location
-        if user_coordinates == (None, None):
-            user_coordinates = self.get_coordinates_from_address(user_postcode)
-            if user_coordinates == (None, None):
-                print("Could not determine coordinates for the provided postcode or address.")
-                return None
-        self.organisation_df["distance_km"] = self.organisation_df.apply(lambda row: self.calculate_distance(user_coordinates, eval(row['coordinates'])), axis=1)
-        organisations_sorted = self.organisation_df.sort_values(by="distance_km")
-        all_organisations = []
-        for row in organisations_sorted.head(5).itertuples():
-            org_info = {
-                "organization_name": row.name,
-                "office_address": row.office_address,
-                "postcode": row.postcode,
-                "website": "" if pd.isna(row.website) else row.website,
-                "phone_number": "" if pd.isna(row.phone_number) else row.phone_number,
-                "email": "" if pd.isna(row.email) else row.email,
-                "distance_km": round(row.distance_km, 2)
-            }
-            all_organisations.append(org_info)
-        return {"location": location, "organizations_count": 5, "organizations": all_organisations}
+        try:
+            user_coordinates, location = self.get_coordinates_from_postcode(user_postcode)
+            if user_coordinates[0] != user_coordinates[0]:
+                return return_response({"response": "Could not determine coordinates for the provided postcode or address."}, error=True)
+            location = location.split(",")[0] if "," in location else location
+
+            self.organisation_df["distance_km"] = self.organisation_df.apply(lambda row: self.calculate_distance(user_coordinates, eval(row['coordinates'])), axis=1)
+            organisations_sorted = self.organisation_df.sort_values(by="distance_km")
+            all_organisations = []
+            for row in organisations_sorted.head(5).itertuples():
+                org_info = {
+                    "organization_name": row.name,
+                    "office_address": row.office_address,
+                    "postcode": row.postcode,
+                    "website": "" if pd.isna(row.website) else row.website,
+                    "phone_number": "" if pd.isna(row.phone_number) else row.phone_number,
+                    "email": "" if pd.isna(row.email) else row.email,
+                    "distance_km": round(row.distance_km, 2)
+                }
+                all_organisations.append(org_info)
+            return return_response({"location": location, "organizations_count": 5, "organizations": all_organisations})
+        except Exception as e:
+            return return_response({"message": f"An error occured while trying to find closest organisations: {e}"}, error=True)
 
     def get_coordinates_from_postcode(self, postcode):
         response = self.pgeocode_nominatim.query_postal_code(postcode)

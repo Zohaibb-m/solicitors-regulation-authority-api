@@ -7,6 +7,7 @@ from app.utils.email_handler import EmailHandler
 from app.utils.pdf_saver import PDFSaver
 from app.utils.google_sheet_handler import GoogleSheetHandler
 from apscheduler.schedulers.background import BackgroundScheduler
+from app.utils.helper_functions import return_response
 import json
 import stripe
 import os
@@ -33,33 +34,27 @@ def create_data_every_24_hours():
 @router.post("/law-firm-search")
 def law_firm_search(request: OrganisationSearchRequest):
     user_postcode = request.post_code 
-    closest_organizations = distance_calculator.get_5_closest_organizations(user_postcode)
-    if closest_organizations is not None:
-        return closest_organizations
-    else:
-        return {"message": "Could not determine coordinates for the provided postcode or address."}
+    return distance_calculator.get_5_closest_organizations(user_postcode)
     
 @router.post("/send-brief")
 def send_brief(request: EmailRequest):
     if request.fake:
-        return {"response": "Email has been sent."}
+        return return_response({"response": "Email has been sent."})
     return email_handler.send_email(request.client_name, request.firm_name, request.location, request.contact, request.legal_matter_type, request.email_to, request.pdf_url, request.user_type)
 
 @router.post("/generate-pdf")
 def generate_pdf(request: str):
     request_body = json.loads(json.loads(request))
-    pdf_url = pdf_saver.upload_to_blob(request_body["text"].replace('–', '-'), request_body["client_name"])
-    return {"pdf_url": pdf_url}
+    return pdf_saver.upload_to_blob(request_body["text"].replace('–', '-'), request_body["client_name"])
+    
 
 @router.post("/store-user-data")
 def store_user_data(request: UserDatastorageRequest):
-    if google_sheet_handler.store_user_data(request):
-        return {"message": "User data stored successfully."}
+    return google_sheet_handler.store_user_data(request)
 
 @router.post("/get-questions")
 def get_questions(request: GetQuestionsRequest):
-    questions = google_sheet_handler.get_question_set(request.legal_category)
-    return {"questions": questions}
+    return google_sheet_handler.get_question_set(request.legal_category)
 
 stripe.api_key = os.getenv("STRIPE_API_KEY")
 price_id = os.getenv("PRICE_ID")

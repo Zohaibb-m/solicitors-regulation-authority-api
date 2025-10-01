@@ -4,6 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 import os
 import requests
+from app.utils.helper_functions import return_response
 
 load_dotenv()
 SMTP_HOST = os.getenv("SMTP_HOST")
@@ -65,12 +66,14 @@ class EmailHandler:
             pdf_attachment.add_header('Content-Type', 'application/pdf')
             msg.attach(pdf_attachment)
         except requests.RequestException as e:
-            return {"error": "Could not download the pdf."}
+            return return_response({"error": "Could not download the pdf."}, error=True)
         try:
             self.email_server.sendmail("support@briefbase.ai", firm_email, msg.as_string())
             return {"response": f"Email sent to {firm_email}"}
         except smtplib.SMTPServerDisconnected as e:
-            print(e)
-            self.login()
-            self.email_server.sendmail("support@briefbase.ai", firm_email, msg.as_string())
-            return {"response": f"Email sent to {firm_email}"}
+            try:
+                self.login()
+                self.email_server.sendmail("support@briefbase.ai", firm_email, msg.as_string())
+                return return_response({"response": f"Email sent to {firm_email}"})
+            except Exception as e:
+                return return_response({"error": f"An error occured: {e}"},error=True)
