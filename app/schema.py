@@ -51,3 +51,6 @@ class UserDatastorageRequest(BaseModel):
 
 class GetQuestionsRequest(BaseModel):
     legal_category: str = Field(..., example="Immigration")
+
+class CheckoutSessionRequest(BaseModel):
+    email: str =  Field("zohaibmunir32@gmail.com", title="Email of the customer to prepopulate the Stripe Session.")

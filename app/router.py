@@ -1,12 +1,13 @@
-from fastapi import APIRouter
-from flask import Flask, redirect, request
-from app.schema import OrganisationSearchRequest, EmailRequest, UserDatastorageRequest, GetQuestionsRequest
+from fastapi import APIRouter, Request, HTTPException
+from flask import redirect, request
+from app.schema import OrganisationSearchRequest, EmailRequest, UserDatastorageRequest, GetQuestionsRequest, CheckoutSessionRequest
 from app.utils.organization_data_maker import OrganizationDataMaker
 from app.utils.distance_calculator import DistanceCalculator
 from app.utils.email_handler import EmailHandler
 from app.utils.pdf_saver import PDFSaver
 from app.utils.google_sheet_handler import GoogleSheetHandler
 from apscheduler.schedulers.background import BackgroundScheduler
+from app.utils.database_handler import DatabaseHandler
 from app.utils.helper_functions import return_response
 import json
 import stripe
@@ -22,6 +23,8 @@ email_handler = EmailHandler()
 pdf_saver = PDFSaver()
 scheduler = BackgroundScheduler()
 google_sheet_handler = GoogleSheetHandler()
+database_handler = DatabaseHandler()
+stripe.api_key = os.getenv("STRIPE_API_KEY")
 
 scheduler.add_job(func=data_maker.process_organization_data, trigger="interval", hours=24)
 scheduler.start()
@@ -59,24 +62,49 @@ def store_user_data(request: UserDatastorageRequest):
 def get_questions(request: GetQuestionsRequest):
     return google_sheet_handler.get_question_set(request.legal_category)
 
-stripe.api_key = os.getenv("STRIPE_API_KEY")
-price_id = os.getenv("PRICE_ID")
+
 @router.post('/create-checkout-session')
-def create_checkout_session():
+def create_checkout_session(data: CheckoutSessionRequest):
     try:
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
-                    # Provide the exact Price ID (for example, price_1234) of the product you want to sell
-                    'price': price_id,
+                    'price': os.getenv("PRICE_ID"),
                     'quantity': 1,
                 },
             ],
+            customer_email=data.email,
             mode='payment',
-            success_url= "http://www.google.com",
-            cancel_url= "http://www.google.com",
+            invoice_creation={
+                "enabled": True
+            },
+            success_url="http://www.google.com"
         )
+        return redirect(checkout_session.url, code=303)
     except Exception as e:
-        return str(e)
+        return return_response({"error": f"The checkout session couldn't be created due to: {e}"})
 
-    return redirect(checkout_session.url, code=303)
+
+@router.post("/webhook")
+async def stripe_webhook(request: Request):
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    endpoint_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "")  # from Stripe dashboard
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except stripe.error.SignatureVerificationError as e:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    # Handle successful payment event
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        customer_email = session.customer_details.email
+        customer_name = session.customer_details.name
+        payment_id = session.id
+        payment_status = session.payment_status
+        database_handler.add_payment_record(customer_email, customer_name, payment_id, payment_status)
+
+@router.post("/check_payment_status")
+def check_payment_status(data: CheckoutSessionRequest):
+    return database_handler.search_payment_status(data.email)
