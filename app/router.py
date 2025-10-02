@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException
-from flask import redirect, request
+from flask import redirect
 from app.schema import OrganisationSearchRequest, EmailRequest, UserDatastorageRequest, GetQuestionsRequest, CheckoutSessionRequest
 from app.utils.organization_data_maker import OrganizationDataMaker
 from app.utils.distance_calculator import DistanceCalculator
