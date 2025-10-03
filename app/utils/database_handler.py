@@ -27,10 +27,10 @@ class DatabaseHandler():
 
     def search_payment_status(self, email):
         try:
-            one_hour_ago = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+            forty_five_minutes_ago = (datetime.utcnow() - timedelta(minutes=45)).isoformat()
             response = (
                 self.payment_table.select("*").eq("user_email", email)
-                .gte("created_at", one_hour_ago)
+                .gte("created_at", forty_five_minutes_ago)
                 .execute()
             )
             return return_response({"payment_status": response.data[0]["status"] == "paid"})
