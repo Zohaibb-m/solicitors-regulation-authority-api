@@ -69,8 +69,8 @@ class EmailHandler:
             return return_response({"error": "Could not download the pdf."}, error=True)
         try:
             self.email_server.sendmail("support@briefbase.ai", firm_email, msg.as_string())
-            return {"response": f"Email sent to {firm_email}"}
-        except smtplib.SMTPServerDisconnected as e:
+            return return_response({"response": f"Email sent to {firm_email}"})
+        except Exception as e:
             try:
                 self.login()
                 self.email_server.sendmail("support@briefbase.ai", firm_email, msg.as_string())
