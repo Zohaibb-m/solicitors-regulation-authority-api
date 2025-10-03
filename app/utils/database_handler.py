@@ -33,7 +33,6 @@ class DatabaseHandler():
                 .gte("created_at", one_hour_ago)
                 .execute()
             )
-            print(response.data)
             return return_response({"payment_status": response.data[0]["status"] == "paid"})
         except Exception as e:
             return return_response({"error": f"An error occurred while searching for payment status: {e}"}, error=True)
