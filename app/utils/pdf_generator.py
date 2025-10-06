@@ -23,7 +23,8 @@ class PDFGenerator:
         self.add_page()
         # There are 3 types of line starters: # for headers, ** for bold, and normal text
         self.set_font(size=12)
-        lines = text.split('\n\n')
+        text = text.replace("\\n","\\n\\n")
+        lines = text.split("\\n\\n")
         for line in lines:
             line = line.strip()
             if line.startswith('# '):

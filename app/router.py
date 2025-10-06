@@ -46,10 +46,9 @@ def send_brief(request: EmailRequest):
     return email_handler.send_email(request.client_name, request.firm_name, request.location, request.contact, request.legal_matter_type, request.email_to, request.pdf_url, request.user_type)
 
 @router.post("/generate-pdf")
-def generate_pdf(request: str):
+def generate_pdf(text: str, client_name: str):
     try: 
-        request_body = json.loads(json.loads(request))
-        return pdf_saver.upload_to_blob(request_body["text"].replace('–', '-'), request_body["client_name"])
+        return pdf_saver.upload_to_blob(text.replace('–', '-'), client_name)
     except Exception as e:
         return return_response({"error": f"An error occured while parsing json: {e}"}, error=True)
     
