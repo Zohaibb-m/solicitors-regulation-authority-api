@@ -7,8 +7,7 @@ load_dotenv()
 
 class PDFGenerator:
     def __init__(self):
-        self.pdf_generator = fpdf.FPDF()
-        self.pdf_generator.set_auto_page_break(auto=True, margin=15)
+        pass
 
     def add_page(self):
         self.pdf_generator.add_page()
@@ -20,6 +19,8 @@ class PDFGenerator:
         self.pdf_generator.cell(w, h, txt, border, ln, align, fill)
 
     def generate_pdf(self, text):
+        self.pdf_generator = fpdf.FPDF()
+        self.pdf_generator.set_auto_page_break(auto=True, margin=20)
         self.add_page()
         # There are 3 types of line starters: # for headers, ** for bold, and normal text
         self.set_font(size=12)
