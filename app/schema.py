@@ -25,6 +25,9 @@ class GeneratePDFRequest(BaseModel):
     text: str = Field(..., example="This is a sample text for PDF generation.\nIt supports multiple lines.")
     client_name: str = Field(..., example="Zohaib Munir")
 
+class GeneratePDFRequestNew(BaseModel):
+    data: str
+
 class UserDatastorageRequest(BaseModel):
     user_id: str = Field(..., example="12345")
     user_name: str = Field(..., example="John Doe")
