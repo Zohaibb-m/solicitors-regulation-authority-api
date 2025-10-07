@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException
 from flask import redirect
-from app.schema import OrganisationSearchRequest, EmailRequest, UserDatastorageRequest, GetQuestionsRequest, CheckoutSessionRequest
+from app.schema import OrganisationSearchRequest, EmailRequest, UserDatastorageRequest, GetQuestionsRequest, CheckoutSessionRequest, GeneratePDFRequest
 from app.utils.organization_data_maker import OrganizationDataMaker
 from app.utils.distance_calculator import DistanceCalculator
 from app.utils.email_handler import EmailHandler
@@ -49,6 +49,13 @@ def send_brief(request: EmailRequest):
 def generate_pdf(text: str, client_name: str):
     try: 
         return pdf_saver.upload_to_blob(text.replace('–', '-'), client_name)
+    except Exception as e:
+        return return_response({"error": f"An error occured while parsing json: {e}"}, error=True)
+
+@router.post("/generate-pdf-json")
+def generate_pdf(request: GeneratePDFRequest):
+    try: 
+        return pdf_saver.upload_to_blob(request.text.replace('–', '-'), request.client_name)
     except Exception as e:
         return return_response({"error": f"An error occured while parsing json: {e}"}, error=True)
     
